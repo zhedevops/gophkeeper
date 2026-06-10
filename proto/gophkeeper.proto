@@ -1,0 +1,82 @@
+edition = "2023";
+
+package grpcserv;
+
+option go_package = "gophkeeper/proto";
+
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_CREDENTIALS = 1;
+  DATA_TYPE_TEXT = 2;
+  DATA_TYPE_BINARY = 3;
+  DATA_TYPE_CARD = 4;
+}
+
+service GophkeeperService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc SetVault(SetVaultRequest) returns (SetVaultResponse);
+  rpc GetVault(GetVaultRequest) returns (GetVaultResponse);
+  rpc DeleteVault(DeleteVaultRequest) returns (DeleteVaultResponse);
+  rpc ListVaults(ListVaultsRequest) returns (ListVaultsResponse);
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  int32 user_id = 1;
+  string access_token = 2;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+}
+
+message SetVaultRequest {
+  DataType datatype = 1;
+  string meta = 2;
+  string filename = 3;
+  bytes userdata = 4;
+}
+
+message SetVaultResponse {
+  int32 id = 1;
+}
+
+message GetVaultRequest {
+  int32 id = 1;
+}
+
+message GetVaultResponse {
+  int32 id = 1;
+  DataType datatype = 2;
+  string meta = 3;
+  string filename = 4;
+  bytes userdata = 5;
+}
+
+message DeleteVaultRequest {
+  int32 id = 1;
+}
+
+message DeleteVaultResponse {}
+
+message VaultInfo {
+  int32 id = 1;
+  DataType datatype = 2;
+  string meta = 3;
+}
+
+message ListVaultsRequest {}
+
+message ListVaultsResponse {
+  repeated VaultInfo items = 1;
+}
