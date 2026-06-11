@@ -16,7 +16,6 @@ var loginCmd = &cobra.Command{
 		login, _ := cmd.Flags().GetString("login")
 		password, _ := cmd.Flags().GetString("password")
 
-		//fmt.Println(login, password)
 		fmt.Println("login called")
 
 		client, conn, err := getClient()
@@ -25,9 +24,6 @@ var loginCmd = &cobra.Command{
 		}
 		defer conn.Close()
 
-		// передавать токен после авторизации
-		// md := metadata.New(map[string]string{"token": SecretToken})
-		// ctx = metadata.NewOutgoingContext(ctx, md)
 		resp, err := client.Login(
 			context.Background(),
 			pb.LoginRequest_builder{
@@ -39,12 +35,6 @@ var loginCmd = &cobra.Command{
 			return err
 		}
 
-		// сохранить токен в кеш а потом token := LoadToken()
-		// md := metadata.New(map[string]string{
-		//	"authorization": "Bearer " + token,
-		//})
-		//
-		//ctx := metadata.NewOutgoingContext(context.Background(), md)
 		err = SaveToken(resp.GetAccessToken())
 		if err != nil {
 			return err

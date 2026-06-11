@@ -83,7 +83,7 @@ var createCmd = &cobra.Command{
 		}
 
 		if meta == "" {
-			return errors.New("--meta is required")
+			return errors.New("meta is required")
 		}
 
 		dt, payload, err := ParseData(opts)

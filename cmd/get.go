@@ -25,7 +25,7 @@ var getCmd = &cobra.Command{
 		ctx := cmd.Context()
 
 		if vaultID == 0 {
-			return errors.New("--meta is required")
+			return errors.New("meta is required")
 		}
 
 		resp, err := client.GetVault(

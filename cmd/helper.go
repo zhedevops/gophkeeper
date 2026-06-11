@@ -114,11 +114,11 @@ func ParseData(opts CreateOptions) (pb.DataType, []byte, error) {
 	switch strings.ToLower(opts.Type) {
 	case "credentials":
 		if login == "" {
-			return pb.DataType_DATA_TYPE_CREDENTIALS, nil, errors.New("--login is required")
+			return pb.DataType_DATA_TYPE_CREDENTIALS, nil, errors.New("login is required")
 		}
 
 		if password == "" {
-			return pb.DataType_DATA_TYPE_CREDENTIALS, nil, errors.New("--password is required")
+			return pb.DataType_DATA_TYPE_CREDENTIALS, nil, errors.New("password is required")
 		}
 		payload, err = json.Marshal(CredentialsData{
 			Login:    login,
@@ -169,19 +169,19 @@ func ParseData(opts CreateOptions) (pb.DataType, []byte, error) {
 		return pb.DataType_DATA_TYPE_BINARY, payload, nil
 	case "card":
 		if number == "" {
-			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("--number is required")
+			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("number is required")
 		}
 
 		if holder == "" {
-			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("--holder is required")
+			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("holder is required")
 		}
 
 		if expiry == "" {
-			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("--expiry is required")
+			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("expiry is required")
 		}
 
 		if cvv == "" {
-			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("--cvv is required")
+			return pb.DataType_DATA_TYPE_CARD, nil, errors.New("cvv is required")
 		}
 
 		payload, err = json.Marshal(CardData{
@@ -199,14 +199,10 @@ func ParseData(opts CreateOptions) (pb.DataType, []byte, error) {
 func validateDataOrFile(data, file string) error {
 	switch {
 	case data == "" && file == "":
-		return errors.New(
-			"either --data or --file must be specified",
-		)
+		return errors.New("either data or file must be specified")
 
 	case data != "" && file != "":
-		return errors.New(
-			"--data and --file are mutually exclusive",
-		)
+		return errors.New("data and file are mutually exclusive")
 	}
 
 	return nil

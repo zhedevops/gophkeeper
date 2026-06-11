@@ -22,7 +22,7 @@ var deleteCmd = &cobra.Command{
 		ctx := cmd.Context()
 
 		if vaultID == 0 {
-			return errors.New("--id is required")
+			return errors.New("id is required")
 		}
 
 		_, err = client.DeleteVault(
