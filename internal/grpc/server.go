@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gophkeeper/internal/config"
 	"gophkeeper/internal/interceptor"
+	"gophkeeper/internal/model"
 	"gophkeeper/internal/service"
 	"os"
 	"os/signal"
@@ -21,19 +22,28 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+type Service interface {
+	CreateUser(ctx context.Context, username string, password string) (model.User, error)
+	LoginUser(ctx context.Context, username string, password string) (string, error)
+	SetVault(ctx context.Context, datatype pb.DataType, meta string, filename string, userdata []byte) (int32, error)
+	GetVault(ctx context.Context, ID int32) (model.UserVault, error)
+	ListVaults(ctx context.Context) ([]model.UserVault, error)
+	DeleteVault(ctx context.Context, ID int32) error
+}
+
 type GophkeeperServiceServer struct {
 	pb.UnimplementedGophkeeperServiceServer
 
-	service *service.Service
+	service Service
 }
 
 func Serve(service *service.Service, cnf *config.Config) error {
 	// Нужно определить порт для сервера
 	listen, err := net.Listen("tcp", cnf.GRPCAddress)
-	defer listen.Close()
 	if err != nil {
 		return fmt.Errorf("ошибка при инициализации listener: %w", err)
 	}
+	defer listen.Close()
 	creds, err := credentials.NewServerTLSFromFile(
 		cnf.Security.TLSCert,
 		cnf.Security.TLSKey,
@@ -53,7 +63,7 @@ func Serve(service *service.Service, cnf *config.Config) error {
 
 	pb.RegisterGophkeeperServiceServer(s, grpcHandler)
 
-	log.Info().Str("addr", cnf.GRPCAddress).Msg("сервер gRPC начал работу")
+	log.Info().Str("addr", cnf.GRPCAddress).Msg("gRPC server has started")
 
 	// Канал для получения сигналов прерывания
 	signalChan := make(chan os.Signal, 1)
@@ -74,7 +84,7 @@ func Serve(service *service.Service, cnf *config.Config) error {
 		// Когда будет получен сигнал прерывания выполнится код
 		s.GracefulStop()
 		<-errChan
-		log.Info().Any("signal", sig).Msg("сервер gRPC завершил работу по сигналу")
+		log.Info().Any("signal", sig).Msg("gRPC server terminated on signal")
 		return nil
 	case err := <-errChan:
 		// Если запуск сервиса вернул ошибку

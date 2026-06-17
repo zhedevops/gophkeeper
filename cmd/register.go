@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
+	"errors"
 	pb "gophkeeper/proto"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -16,25 +16,25 @@ var registerCmd = &cobra.Command{
 	Use:   "register",
 	Short: "Регистрация нового пользователя",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("register called")
-		//fmt.Println(login, password)
+		if login == "" {
+			return errors.New("login id is required")
+		}
+
+		err := ValidatePassword(password)
+		if err != nil {
+			return err
+		}
 
 		client, conn, err := getClient()
 		if err != nil {
 			return err
 		}
 		defer conn.Close()
-		// todo валидация пароля не менее 12 символов цифры, строчные и прописные, хотя бы 1 символ
 
-		// 1. хранение данных в зашифрованном виде
-		// 2. офлайн режим работы??? локально в sqllite сохранять данные те же что на сервере,
-		//а в офлайн только читать
+		ctx := cmd.Context()
 
-		// передавать токен после авторизации
-		// md := metadata.New(map[string]string{"token": SecretToken})
-		// ctx = metadata.NewOutgoingContext(ctx, md)
 		resp, err := client.Register(
-			context.Background(),
+			ctx,
 			pb.RegisterRequest_builder{
 				Username: &login,
 				Password: &password,
@@ -43,17 +43,13 @@ var registerCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println("register result: ", resp)
-		// сохранить токен в кеш а потом token := LoadToken()
-		// md := metadata.New(map[string]string{
-		//	"authorization": "Bearer " + token,
-		//})
-		//
-		//ctx := metadata.NewOutgoingContext(context.Background(), md)
+
 		err = SaveToken(resp.GetAccessToken())
 		if err != nil {
 			return err
 		}
+
+		log.Info().Msg("user successfully registered")
 
 		return nil
 	},

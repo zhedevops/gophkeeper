@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"gophkeeper/internal/model"
 	pb "gophkeeper/proto"
 	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -108,7 +108,8 @@ var createCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println("vault created with id: ", resp.GetId())
+
+		log.Info().Int32("vault id", resp.GetId()).Msg("user data created")
 
 		vc := model.VaultCache{
 			ID:       resp.GetId(),
@@ -122,7 +123,8 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println("cache created with id: ", resp.GetId())
+		log.Info().Int32("vault id", resp.GetId()).Msg("user data is stored in the cache")
+
 		return nil
 	},
 }

@@ -1,21 +1,21 @@
 package main
 
 import (
+	"github.com/rs/zerolog/log"
+
 	"gophkeeper/internal/config"
 	"gophkeeper/internal/database"
 	grpcserver "gophkeeper/internal/grpc"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/service"
 	"gophkeeper/internal/storage"
-	"log"
 	"strings"
 )
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("failed to start server")
 	}
-
 }
 
 func run() error {
@@ -28,16 +28,14 @@ func run() error {
 
 	var st model.Repository
 	dsn := strings.TrimSpace(cnf.DatabaseDsn)
-	if dsn != "" {
-		pool, err := database.ConnectDB(dsn)
-		if err != nil {
-			return err
-		}
-		st = storage.NewDBStorage(pool)
-		completion = func() {
-			log.Println("database pool closed")
-			database.CloseDB(pool)
-		}
+	pool, err := database.ConnectDB(dsn)
+	if err != nil {
+		return err
+	}
+	st = storage.NewDBStorage(pool)
+	completion = func() {
+		log.Info().Str("addr", cnf.GRPCAddress).Msg("database pool closed")
+		database.CloseDB(pool)
 	}
 
 	defer completion()

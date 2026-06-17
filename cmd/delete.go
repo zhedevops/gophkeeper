@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	pb "gophkeeper/proto"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,8 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("vault %d deleted\n", vaultID)
+
+		log.Info().Int32("vault id", vaultID).Msg("user data deleted")
 
 		return nil
 	},

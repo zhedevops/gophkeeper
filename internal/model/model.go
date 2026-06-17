@@ -12,9 +12,9 @@ type Repository interface {
 	CreateUser(ctx context.Context, username string, password string) (int32, error)
 	LoginUser(ctx context.Context, username string) (int32, string, error)
 	CreateVault(ctx context.Context, uv UserVault) (int32, error)
-	GetVault(ctx context.Context, ID int32) (UserVault, error)
+	GetVault(ctx context.Context, ID int32, userID int32) (UserVault, error)
 	ListVaults(ctx context.Context, userID int32) ([]UserVault, error)
-	DeleteVault(ctx context.Context, ID int32) error
+	DeleteVault(ctx context.Context, ID int32, userID int32) error
 }
 
 // UserVault Пользовательские данные

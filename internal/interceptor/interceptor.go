@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"context"
-	"gophkeeper/internal/service"
+	"gophkeeper/internal/model"
 	"strings"
 	"time"
 
@@ -11,6 +11,11 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+type AuthService interface {
+	ParseAuthToken(string) (model.User, error)
+	SetUser(context.Context, model.User) context.Context
+}
 
 var publicMethods = map[string]struct{}{
 	"/grpcserv.GophkeeperService/Login":    {},
@@ -26,9 +31,8 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
 	}
 }
 
-func UnaryInterceptor(service *service.Service) grpc.UnaryServerInterceptor {
+func UnaryInterceptor(service AuthService) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		//fmt.Println("метод: ", info.FullMethod)
 		if _, ok := publicMethods[info.FullMethod]; ok {
 			return handler(ctx, req)
 		}

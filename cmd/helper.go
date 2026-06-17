@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
 
@@ -56,7 +58,8 @@ func SaveToken(token string) error {
 		return err
 	}
 
-	fmt.Println("configFile with token: ", configFile)
+	log.Info().Str("config file", configFile).Msg("token received")
+
 	return os.WriteFile(configFile, data, 0600)
 }
 
@@ -279,4 +282,35 @@ func getDatatype(datatype pb.DataType) string {
 	default:
 		return "unknown"
 	}
+}
+
+func ValidatePassword(password string) error {
+	if password == "" {
+		return errors.New("password is required")
+	}
+
+	if len(password) < 12 {
+		return errors.New("password is too short")
+	}
+
+	var hasLower, hasUpper, hasDigit, hasSpecial bool
+
+	for _, r := range password {
+		switch {
+		case unicode.IsLower(r):
+			hasLower = true
+		case unicode.IsUpper(r):
+			hasUpper = true
+		case unicode.IsDigit(r):
+			hasDigit = true
+		default:
+			hasSpecial = true
+		}
+	}
+
+	if !hasLower || !hasUpper || !hasDigit || !hasSpecial {
+		return errors.New("password must contain at least one digit, a lowercase letter, an uppercase letter, and a symbol")
+	}
+
+	return nil
 }

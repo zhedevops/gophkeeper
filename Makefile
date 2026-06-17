@@ -54,3 +54,31 @@ certs:
 		-keyout certs/server.key \
 		-out certs/server.crt \
 		-config certs/openssl.cnf
+
+.PHONY: certs-tests
+certs-tests:
+	mkdir -p testdata
+	openssl req \
+		-x509 \
+		-newkey rsa:4096 \
+		-sha256 \
+		-days 365 \
+		-nodes \
+		-keyout testdata/server.key \
+		-out testdata/server.crt \
+		-config certs/openssl.cnf
+
+gmod:
+	go mod tidy
+
+test:
+	go test -count 1 ./...
+
+testcov:
+	go test -count 1 ./... -cover
+
+vet:
+	go vet ./...
+
+vetstat:
+	go vet -vettool=$(which statictest) ./...

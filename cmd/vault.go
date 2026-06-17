@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"gophkeeper/internal/cache"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc/metadata"
 )
@@ -28,7 +28,6 @@ var vaultCmd = &cobra.Command{
 
 		cmd.SetContext(ctx)
 
-		fmt.Println("init cache")
 		if cacheRepo != nil {
 			return nil
 		}
@@ -42,6 +41,8 @@ var vaultCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		log.Info().Msg("cache is initialized")
 
 		return nil
 	},

@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	pb "gophkeeper/proto"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -16,16 +15,16 @@ var loginCmd = &cobra.Command{
 		login, _ := cmd.Flags().GetString("login")
 		password, _ := cmd.Flags().GetString("password")
 
-		fmt.Println("login called")
-
 		client, conn, err := getClient()
 		if err != nil {
 			return err
 		}
 		defer conn.Close()
 
+		ctx := cmd.Context()
+
 		resp, err := client.Login(
-			context.Background(),
+			ctx,
 			pb.LoginRequest_builder{
 				Username: &login,
 				Password: &password,
@@ -39,6 +38,8 @@ var loginCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		log.Info().Msg("user authenticated")
 
 		return nil
 	},

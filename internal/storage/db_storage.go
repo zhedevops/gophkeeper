@@ -4,7 +4,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gophkeeper/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -56,7 +55,6 @@ func (dbs *DBStorage) LoginUser(ctx context.Context, username string) (int32, st
 
 // CreateVault Создаёт запись с пользовательскими данными
 func (dbs *DBStorage) CreateVault(ctx context.Context, uv model.UserVault) (int32, error) {
-	fmt.Println("db create vault: ", uv)
 	var ID int32
 	sql := `INSERT INTO user_vaults (user_id, datatype, meta, filename, encrypted_data) 
             VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id, datatype, meta) DO NOTHING RETURNING id;`
@@ -72,10 +70,10 @@ func (dbs *DBStorage) CreateVault(ctx context.Context, uv model.UserVault) (int3
 }
 
 // GetVault Получае запись с пользовательскими данными
-func (dbs *DBStorage) GetVault(ctx context.Context, ID int32) (model.UserVault, error) {
+func (dbs *DBStorage) GetVault(ctx context.Context, ID int32, userID int32) (model.UserVault, error) {
 	uv := model.UserVault{}
-	sql := `SELECT user_id, datatype, meta, filename, encrypted_data FROM user_vaults WHERE id = $1;`
-	err := dbs.db.QueryRow(ctx, sql, ID).Scan(&uv.UserID, &uv.Datatype, &uv.Meta, &uv.Filename, &uv.Userdata)
+	sql := `SELECT datatype, meta, filename, encrypted_data FROM user_vaults WHERE id = $1 AND user_id = $2;`
+	err := dbs.db.QueryRow(ctx, sql, ID, userID).Scan(&uv.Datatype, &uv.Meta, &uv.Filename, &uv.Userdata)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return uv, model.ErrVaultNotFound
@@ -107,8 +105,8 @@ func (dbs *DBStorage) ListVaults(ctx context.Context, userID int32) ([]model.Use
 }
 
 // DeleteVault Удаляет запись с пользовательскими данными
-func (dbs *DBStorage) DeleteVault(ctx context.Context, ID int32) error {
-	cmdTag, err := dbs.db.Exec(ctx, "DELETE FROM user_vaults WHERE id = $1;", ID)
+func (dbs *DBStorage) DeleteVault(ctx context.Context, ID int32, userID int32) error {
+	cmdTag, err := dbs.db.Exec(ctx, "DELETE FROM user_vaults WHERE id = $1 AND user_id = $2;", ID, userID)
 	if err != nil {
 		return err
 	}

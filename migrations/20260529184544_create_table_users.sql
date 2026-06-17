@@ -4,7 +4,7 @@ SELECT 'up SQL query';
 CREATE TABLE IF NOT EXISTS users (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     login VARCHAR(50) NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 -- +goose StatementEnd

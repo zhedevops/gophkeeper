@@ -1,13 +1,15 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 )
 
 type EnvParams struct {
 	DatabaseDsn *string `env:"DATABASE_DSN"`
-	Key         *string `env:"KEY" envDefault:"kjdfkklsdf932.fjs"`
+	Key         *string `env:"KEY"`
 	GRPCAddress *string `env:"GRPC_ADDRESS" envDefault:":3200"`
 	TLSCert     *string `env:"TLS_CERT"`
 	TLSKey      *string `env:"TLS_KEY"`
@@ -48,29 +50,24 @@ func parseEnvParams() error {
 		return err
 	}
 
-	if params.DatabaseDsn != nil {
-		cfg.DatabaseDsn = *params.DatabaseDsn
+	if isEmpty(params.DatabaseDsn) ||
+		isEmpty(params.Key) ||
+		isEmpty(params.TLSCert) ||
+		isEmpty(params.TLSKey) ||
+		isEmpty(params.MasterKey) {
+		return errors.New("missing required environment variables")
 	}
 
-	if params.GRPCAddress != nil {
-		cfg.GRPCAddress = *params.GRPCAddress
-	}
-
-	if params.Key != nil {
-		cfg.Security.SecretKey = *params.Key
-	}
-
-	if params.TLSCert != nil {
-		cfg.Security.TLSCert = *params.TLSCert
-	}
-
-	if params.TLSKey != nil {
-		cfg.Security.TLSKey = *params.TLSKey
-	}
-
-	if params.MasterKey != nil {
-		cfg.Security.MasterKey = *params.MasterKey
-	}
+	cfg.DatabaseDsn = *params.DatabaseDsn
+	cfg.GRPCAddress = *params.GRPCAddress
+	cfg.Security.SecretKey = *params.Key
+	cfg.Security.TLSCert = *params.TLSCert
+	cfg.Security.TLSKey = *params.TLSKey
+	cfg.Security.MasterKey = *params.MasterKey
 
 	return nil
+}
+
+func isEmpty(s *string) bool {
+	return s == nil || *s == ""
 }

@@ -5,10 +5,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"gophkeeper/internal/model"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 )
 
 type Repository struct {
@@ -16,7 +16,6 @@ type Repository struct {
 }
 
 func New(dbPath string) (*Repository, error) {
-	fmt.Println("init sqlite3 db")
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, err
@@ -25,6 +24,8 @@ func New(dbPath string) (*Repository, error) {
 	if err := migrate(db); err != nil {
 		return nil, err
 	}
+
+	log.Info().Msg("sqlite3 database initialized")
 
 	return &Repository{
 		db: db,
@@ -77,6 +78,7 @@ func (r *Repository) List(ctx context.Context) ([]model.VaultCache, error) {
 	if err != nil {
 		return vcs, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var vc model.VaultCache
 		if err := rows.Scan(&vc.ID, &vc.Datatype, &vc.Meta); err != nil {

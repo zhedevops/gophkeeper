@@ -62,17 +62,16 @@ func (srv *Service) CreateUser(ctx context.Context, username string, password st
 		return user, err
 	}
 	user.ID = ID
-	user.AccessToken = srv.GetAuthToken(user)
+	user.AccessToken, err = srv.GetAuthToken(user)
+	if err != nil {
+		return user, err
+	}
 
 	return user, nil
 }
 
 // LoginUser Авторизует нового пользователя.
 func (srv *Service) LoginUser(ctx context.Context, username string, password string) (string, error) {
-	passHash, err := srv.hashFunc(password)
-	if err != nil {
-		return "", err
-	}
 	ID, passHash, err := srv.repo.LoginUser(ctx, username)
 	if err != nil {
 		return "", err
@@ -84,7 +83,10 @@ func (srv *Service) LoginUser(ctx context.Context, username string, password str
 	}
 
 	user := model.User{ID: ID}
-	accessToken := srv.GetAuthToken(user)
+	accessToken, err := srv.GetAuthToken(user)
+	if err != nil {
+		return "", err
+	}
 
 	return accessToken, nil
 }
@@ -123,7 +125,11 @@ func (srv *Service) SetVault(ctx context.Context, datatype pb.DataType, meta str
 
 // GetVault Получает запись по идентификатору с данными пользователя
 func (srv *Service) GetVault(ctx context.Context, ID int32) (model.UserVault, error) {
-	uv, err := srv.repo.GetVault(ctx, ID)
+	user, err := getUser(ctx)
+	if err != nil {
+		return model.UserVault{}, err
+	}
+	uv, err := srv.repo.GetVault(ctx, ID, user.ID)
 	if err != nil {
 		return model.UserVault{}, err
 	}
@@ -137,6 +143,7 @@ func (srv *Service) GetVault(ctx context.Context, ID int32) (model.UserVault, er
 		return model.UserVault{}, err
 	}
 
+	uv.UserID = user.ID
 	uv.Userdata = plaintext
 
 	return uv, nil
@@ -158,7 +165,11 @@ func (srv *Service) ListVaults(ctx context.Context) ([]model.UserVault, error) {
 
 // DeleteVault Удаляет по идентификатору пользовательские данные
 func (srv *Service) DeleteVault(ctx context.Context, ID int32) error {
-	return srv.repo.DeleteVault(ctx, ID)
+	user, err := getUser(ctx)
+	if err != nil {
+		return err
+	}
+	return srv.repo.DeleteVault(ctx, ID, user.ID)
 }
 
 // HashPassword Создаёт хеш пароля пользователя
@@ -205,16 +216,19 @@ func (srv *Service) ParseAuthToken(token string) (model.User, error) {
 }
 
 // GetAuthToken Создаёт JWT-токен.
-func (srv *Service) GetAuthToken(user model.User) string {
+func (srv *Service) GetAuthToken(user model.User) (string, error) {
 	userJWT := model.UserJWT{
 		UID: user.ID,
 		Exp: time.Now().Add(time.Hour).Unix(),
 	}
-	userData, _ := json.Marshal(userJWT)
+	userData, err := json.Marshal(userJWT)
+	if err != nil {
+		return "", err
+	}
 	h := hmac.New(sha256.New, []byte(srv.cfg.Security.SecretKey))
 	h.Write(userData)
 	sign := h.Sum(nil)
-	return base64.StdEncoding.EncodeToString(userData) + "." + base64.StdEncoding.EncodeToString(sign)
+	return base64.StdEncoding.EncodeToString(userData) + "." + base64.StdEncoding.EncodeToString(sign), nil
 }
 
 // SetUser Устанавливает пользователя в контекст
