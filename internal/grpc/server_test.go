@@ -50,6 +50,14 @@ func (m *mockService) DeleteVault(ctx context.Context, ID int32) error {
 	return m.err
 }
 
+func (m *mockService) ParseAuthToken(_ string) (model.User, error) {
+	return m.user, m.err
+}
+
+func (m *mockService) SetUser(ctx context.Context, _ model.User) context.Context {
+	return ctx
+}
+
 func TestRegister_Success(t *testing.T) {
 	srv := &GophkeeperServiceServer{
 		service: &mockService{user: model.User{ID: 1, AccessToken: "token"}},

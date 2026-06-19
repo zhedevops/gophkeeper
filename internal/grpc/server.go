@@ -7,8 +7,6 @@ import (
 	"gophkeeper/internal/config"
 	"gophkeeper/internal/interceptor"
 	"gophkeeper/internal/model"
-	"gophkeeper/internal/service"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -29,6 +27,7 @@ type Service interface {
 	GetVault(ctx context.Context, ID int32) (model.UserVault, error)
 	ListVaults(ctx context.Context) ([]model.UserVault, error)
 	DeleteVault(ctx context.Context, ID int32) error
+	interceptor.AuthService
 }
 
 type GophkeeperServiceServer struct {
@@ -37,7 +36,7 @@ type GophkeeperServiceServer struct {
 	service Service
 }
 
-func Serve(service *service.Service, cnf *config.Config) error {
+func Serve(service Service, cnf *config.Config) error {
 	// Нужно определить порт для сервера
 	listen, err := net.Listen("tcp", cnf.GRPCAddress)
 	if err != nil {
@@ -65,11 +64,10 @@ func Serve(service *service.Service, cnf *config.Config) error {
 
 	log.Info().Str("addr", cnf.GRPCAddress).Msg("gRPC server has started")
 
-	// Канал для получения сигналов прерывания
-	signalChan := make(chan os.Signal, 1)
 	// Канал для обработки ошибки
 	errChan := make(chan error, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
 	go func() {
 		// Получение запроса gRpc
 		if err := s.Serve(listen); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
@@ -80,11 +78,11 @@ func Serve(service *service.Service, cnf *config.Config) error {
 	}()
 
 	select {
-	case sig := <-signalChan:
+	case <-ctx.Done():
 		// Когда будет получен сигнал прерывания выполнится код
 		s.GracefulStop()
 		<-errChan
-		log.Info().Any("signal", sig).Msg("gRPC server terminated on signal")
+		log.Info().Msg("gRPC server terminated on signal")
 		return nil
 	case err := <-errChan:
 		// Если запуск сервиса вернул ошибку
@@ -92,7 +90,7 @@ func Serve(service *service.Service, cnf *config.Config) error {
 	}
 }
 
-func New(service *service.Service) *GophkeeperServiceServer {
+func New(service Service) *GophkeeperServiceServer {
 	return &GophkeeperServiceServer{
 		service: service,
 	}

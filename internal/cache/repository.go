@@ -81,10 +81,13 @@ func (r *Repository) List(ctx context.Context) ([]model.VaultCache, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var vc model.VaultCache
-		if err := rows.Scan(&vc.ID, &vc.Datatype, &vc.Meta); err != nil {
+		if err = rows.Scan(&vc.ID, &vc.Datatype, &vc.Meta); err != nil {
 			return vcs, err
 		}
 		vcs = append(vcs, vc)
+	}
+	if err = rows.Err(); err != nil {
+		return vcs, err
 	}
 
 	return vcs, nil

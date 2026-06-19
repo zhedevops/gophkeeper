@@ -7,6 +7,18 @@ make server
 
 **Команды клиента:**
 
+После ввода команд регистрации и аутентификации нужно будет ввести пароль. 
+
+Регистрация пользователя:
+```
+make register login=test
+```
+
+Аутентификация пользователя:
+```
+make login login=test
+```
+
 Сохранение логина/пароля:
 ```
 make create-credentials type=credentials meta="логин и пароль от ВК" login=xxx password=secret1

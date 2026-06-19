@@ -17,8 +17,8 @@ func newMockRepository(t *testing.T, dbPath string) *Repository {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_ = db.Close()
 		_, _ = db.Exec(`DELETE FROM vault_cache`)
+		_ = db.Close()
 	})
 
 	return &Repository{db: db}

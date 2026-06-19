@@ -13,7 +13,10 @@ var loginCmd = &cobra.Command{
 	Short: "Авторизация пользователя",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		login, _ := cmd.Flags().GetString("login")
-		password, _ := cmd.Flags().GetString("password")
+		password, err := readPassword()
+		if err != nil {
+			return err
+		}
 
 		client, conn, err := getClient()
 		if err != nil {
@@ -48,15 +51,4 @@ var loginCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringP("login", "l", "", "Login")
-	loginCmd.Flags().StringP("password", "p", "", "Password")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

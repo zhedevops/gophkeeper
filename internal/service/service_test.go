@@ -21,13 +21,14 @@ func TestService_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	m.EXPECT().CreateUser(ctx, login, gomock.Any()).DoAndReturn(func(ctx context.Context, username string, hash string) (int32, error) {
 		require.NoError(t, CheckPassword(hash, password))
 		return 1, nil
 	})
 	m.EXPECT().CreateUser(ctx, login, gomock.Any()).Return(int32(0), errors.New("user cannot create"))
-	srv := NewService(m, cnf)
 
 	t.Run("test ok", func(t *testing.T) {
 		user, err := srv.CreateUser(ctx, login, password)
@@ -63,11 +64,13 @@ func TestService_LoginUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
+
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	m.EXPECT().LoginUser(ctx, login).Return(int32(1), passHash, nil)
 	m.EXPECT().LoginUser(ctx, login).Return(int32(0), "", errors.New("user not exists"))
 	m.EXPECT().LoginUser(ctx, login).Return(int32(0), "", model.ErrInvalidCredentials)
-	srv := NewService(m, cnf)
 
 	t.Run("test ok", func(t *testing.T) {
 		accessToken, err := srv.LoginUser(ctx, login, password)
@@ -96,8 +99,10 @@ func TestService_SetVault(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
-	srv := NewService(m, cnf)
+
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	userID := int32(1)
 	user := model.User{ID: userID}
 	accessToken, err := srv.GetAuthToken(user)
@@ -149,8 +154,10 @@ func TestService_GetVault(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
-	srv := NewService(m, cnf)
+
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	userID := int32(1)
 	user := model.User{ID: userID}
 	accessToken, err := srv.GetAuthToken(user)
@@ -180,6 +187,7 @@ func TestService_GetVault(t *testing.T) {
 		Filename: filename,
 		Userdata: wrongUserdata,
 	}
+
 	m.EXPECT().GetVault(ctx, int32(1), userID).Return(uv, nil)
 	m.EXPECT().GetVault(ctx, int32(1), userID).Return(uvWrong, nil)
 	m.EXPECT().GetVault(ctx, int32(1), userID).Return(model.UserVault{}, model.ErrVaultNotFound)
@@ -227,8 +235,10 @@ func TestService_ListVaults(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
-	srv := NewService(m, cnf)
+
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	userID := int32(1)
 	user := model.User{ID: userID}
 	accessToken, err := srv.GetAuthToken(user)
@@ -285,8 +295,10 @@ func TestService_DeleteVault(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockRepository(ctrl)
-	cnf := config.GetConfig()
-	srv := NewService(m, cnf)
+
+	cnf := config.Config{}
+	srv := NewService(m, &cnf)
+
 	userID := int32(1)
 	user := model.User{ID: userID}
 	accessToken, err := srv.GetAuthToken(user)

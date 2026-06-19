@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"gophkeeper/internal/cache"
 
 	"github.com/rs/zerolog/log"
@@ -24,7 +23,7 @@ var vaultCmd = &cobra.Command{
 			"authorization": "Bearer " + token,
 		})
 
-		ctx := metadata.NewOutgoingContext(context.Background(), md)
+		ctx := metadata.NewOutgoingContext(cmd.Context(), md)
 
 		cmd.SetContext(ctx)
 
@@ -50,14 +49,4 @@ var vaultCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(vaultCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// vaultCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// vaultCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

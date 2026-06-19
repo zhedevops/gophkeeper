@@ -4,11 +4,11 @@ server:
 
 .PHONY: register
 register:
-	go run . register -l $(login) -p $(password)
+	go run . register -l $(login)
 
 .PHONY: login
 login:
-	go run . login -l $(login) -p $(password)
+	go run . login -l $(login)
 
 .PHONY: create-credentials
 create-credentials:

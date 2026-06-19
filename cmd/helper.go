@@ -14,15 +14,16 @@ import (
 	"unicode"
 
 	"github.com/rs/zerolog/log"
+	"golang.org/x/term"
 	"google.golang.org/grpc"
 )
 
 // getClient Возвращает клиента
 func getClient() (pb.GophkeeperServiceClient, *grpc.ClientConn, error) {
-	if err := config.SetConfig(); err != nil {
+	cnf, err := config.NewConfig()
+	if err != nil {
 		return nil, nil, err
 	}
-	cnf := config.GetConfig()
 
 	return client.New(cnf)
 }
@@ -282,6 +283,19 @@ func getDatatype(datatype pb.DataType) string {
 	default:
 		return "unknown"
 	}
+}
+
+func readPassword() (string, error) {
+	fmt.Print("Password: ")
+
+	pass, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println()
+
+	return string(pass), nil
 }
 
 func ValidatePassword(password string) error {

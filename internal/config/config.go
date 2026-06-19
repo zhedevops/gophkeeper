@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
@@ -30,24 +30,13 @@ type Security struct {
 	TLSKey    string
 }
 
-var cfg = &Config{}
-
-// SetConfig Устанавливает конфигурацию.
-func SetConfig() error {
-	return parseEnvParams()
-}
-
-// GetConfig Возвращает конфигурацию.
-func GetConfig() *Config {
-	return cfg
-}
-
-// parseEnvParams Парсит параметры из .env
-func parseEnvParams() error {
+// NewConfig Возвращает конфигурацию.
+func NewConfig() (*Config, error) {
+	var cfg = &Config{}
 	_ = godotenv.Load(".env")
 	var params EnvParams
 	if err := env.Parse(&params); err != nil {
-		return err
+		return cfg, err
 	}
 
 	if isEmpty(params.DatabaseDsn) ||
@@ -55,7 +44,7 @@ func parseEnvParams() error {
 		isEmpty(params.TLSCert) ||
 		isEmpty(params.TLSKey) ||
 		isEmpty(params.MasterKey) {
-		return errors.New("missing required environment variables")
+		return cfg, errors.New("missing required environment variables")
 	}
 
 	cfg.DatabaseDsn = *params.DatabaseDsn
@@ -65,7 +54,7 @@ func parseEnvParams() error {
 	cfg.Security.TLSKey = *params.TLSKey
 	cfg.Security.MasterKey = *params.MasterKey
 
-	return nil
+	return cfg, nil
 }
 
 func isEmpty(s *string) bool {

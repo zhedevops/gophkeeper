@@ -19,10 +19,10 @@ func main() {
 }
 
 func run() error {
-	if err := config.SetConfig(); err != nil {
+	cnf, err := config.NewConfig()
+	if err != nil {
 		return err
 	}
-	cnf := config.GetConfig()
 
 	var completion func()
 

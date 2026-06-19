@@ -101,6 +101,9 @@ func (dbs *DBStorage) ListVaults(ctx context.Context, userID int32) ([]model.Use
 		}
 		uvs = append(uvs, uv)
 	}
+	if err = rows.Err(); err != nil {
+		return uvs, err
+	}
 	return uvs, nil
 }
 

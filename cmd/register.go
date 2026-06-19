@@ -19,8 +19,12 @@ var registerCmd = &cobra.Command{
 		if login == "" {
 			return errors.New("login id is required")
 		}
+		password, err := readPassword()
+		if err != nil {
+			return err
+		}
 
-		err := ValidatePassword(password)
+		err = ValidatePassword(password)
 		if err != nil {
 			return err
 		}
@@ -58,15 +62,4 @@ var registerCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(registerCmd)
 	registerCmd.Flags().StringVarP(&login, "login", "l", "", "Login")
-	registerCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// registerCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// registerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

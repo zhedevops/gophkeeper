@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS user_vaults (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id),
     datatype SMALLINT NOT NULL,
-    meta TEXT NOT NULL,
+    meta VARCHAR(255) NOT NULL,
     filename VARCHAR(255),
     encrypted_data BYTEA NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
